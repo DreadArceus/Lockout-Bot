@@ -85,6 +85,7 @@ class Handles(commands.Cog):
             rank = data['rank']
         self.db.add_handle(ctx.guild.id, member.id, handle, rating)
         self.db.add_rated_user(ctx.guild.id, member.id)
+        self.db.add_solo_user(ctx.guild.id, member.id)
         embed = discord.Embed(
             description=f'Handle for user {member.mention} successfully set to [{handle}](https://codeforces.com/profile/{handle})',
             color=Color(cf_colors[rank.lower()]))

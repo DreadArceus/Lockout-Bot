@@ -110,6 +110,7 @@ class Solo(commands.Cog):
 
                     self.db.delete_solo(solo_info.guild, solo_info.user)
                     self.db.add_to_finished_solos(solo_info)
+                    self.db.update_solo_score(solo.guild, solo.user, (solo.rating / 100) ** 2)
 
                     embed = discord.Embed(color=discord.Color.dark_magenta())
                     embed.add_field(name="User", value=(await ctx.guild.fetch_member(solo.user)).mention)
@@ -139,7 +140,24 @@ class Solo(commands.Cog):
             await discord_.send_message(ctx, f"{ctx.author.mention} cant lose a solo you never started")
             return
         self.db.delete_solo(ctx.guild.id, ctx.author.id)
+        self.db.update_solo_score(ctx.guild.id, ctx.author.id, 0, True)
         await discord_.send_message(ctx, f"{ctx.author.mention} is a loser")
+
+    @solo.command(brief="Check the server leaderboard")
+    async def scoreboard(self, ctx):
+        res = self.db.get_solo_score(ctx.guild.id)
+        res = sorted(res, key=lambda s: s.loss_count)
+        res = sorted(res, key=lambda s: s.score, reverse=True)
+
+        desc = "Who is the biggest <:chad:818455088002498560>"
+        embed = discord.Embed(description=desc, color=discord.Color.magenta())
+        embed.set_author(name="Server Solo Scoreboard")
+        embed.add_field(name="User", value='\n'.join(
+            [f"{(await ctx.guild.fetch_member(x.user)).mention}" for x in res]))
+        embed.add_field(name="Solo Score", value='\n'.join([f"{x.score}" for x in res]))
+        embed.add_field(name="Loss Count", value='\n'.join([f"{x.loss_count}" for x in res]))
+
+        await ctx.send(embed=embed)
 
 
 def setup(client):

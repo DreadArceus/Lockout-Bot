@@ -154,6 +154,14 @@ class DbConn:
                     )
                             """)
         cmds.append("""
+                        CREATE TABLE IF NOT EXISTS solo_scoreboard(
+                            guild BIGINT,
+                            user_ BIGINT,
+                            score INT,
+                            loss_count INT
+                    )
+                            """)
+        cmds.append("""
                         CREATE TABLE IF NOT EXISTS tournament_info(
                             guild BIGINT,
                             name TEXT,
@@ -844,6 +852,58 @@ class DbConn:
                     guild = %s AND USER_ = %s
                 """
         curr.execute(query, (guild, user))
+        self.conn.commit()
+        curr.close()
+
+    def add_solo_user(self, guild, user):
+        query = """
+                    SELECT * FROM solo_scoreboard
+                    WHERE
+                    guild = %s AND user_ = %s
+                """
+        curr = self.conn.cursor()
+        curr.execute(query, (guild, user))
+        data = curr.fetchall()
+        if len(data) > 0:
+            return
+        query = """
+                    INSERT INTO solo_scoreboard
+                    VALUES
+                    (%s, %s, %s, %s)
+                """
+        curr.execute(query, (guild, user, 0, 0))
+        self.conn.commit()
+        curr.close()
+
+    def get_solo_score(self, guild, user=None):
+        query = """
+                    SELECT * FROM solo_scoreboard
+                    WHERE
+                    guild = %s
+                """
+        curr = self.conn.cursor()
+        if user is not None:
+            query += " AND user_ = %s"
+        curr.execute(query, (guild, user) if user is not None else (guild, ))
+        res = curr.fetchall()
+        curr.close()
+        Score = namedtuple('Score', 'guild user score loss_count')
+        data = [Score(x[0], x[1], x[2], x[3]) for x in res]
+        if user is not None:
+            return data[0]
+        return data
+
+    def update_solo_score(self, guild, user, score, lost: bool = False):
+        query = """
+                    UPDATE solo_scoreboard
+                    SET
+                    score = score + %s,
+                    loss_count = loss_count + %s
+                    WHERE
+                    guild = %s AND user_ = %s 
+                """
+        curr = self.conn.cursor()
+        curr.execute(query, (score, int(lost), guild, user))
         self.conn.commit()
         curr.close()
 

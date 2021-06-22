@@ -123,6 +123,37 @@ class DbConn:
                     )
                     """)
         cmds.append("""
+                        CREATE TABLE IF NOT EXISTS ongoing_solos(
+                            guild BIGINT,
+                            channel BIGINT,
+                            user_ BIGINT,
+                            time INT,
+                            problem TEXT,
+                            rating INT,
+                            start_time INT,
+                            duration INT
+                    )
+                            """)
+        cmds.append("""
+                        CREATE TABLE IF NOT EXISTS ongoing_solo_alts(
+                            guild BIGINT,
+                            user_ BIGINT,
+                            alys TEXT
+                    )
+                    """)
+        cmds.append("""
+                        CREATE TABLE IF NOT EXISTS finished_solos(
+                            guild BIGINT,
+                            channel BIGINT,
+                            user_ BIGINT,
+                            time INT,
+                            problem TEXT,
+                            rating INT,
+                            start_time INT,
+                            duration INT
+                    )
+                            """)
+        cmds.append("""
                         CREATE TABLE IF NOT EXISTS tournament_info(
                             guild BIGINT,
                             name TEXT,
@@ -158,8 +189,8 @@ class DbConn:
                 curr.execute(x)
             curr.close()
             self.conn.commit()
-        except Exception:
-            print("Error while making tables")
+        except Exception as e:
+            print("Error while making tables", e)
 
     def get_handle(self, guild, discord_id):
         query = f"""
@@ -701,6 +732,153 @@ class DbConn:
         data = []
         for x in res:
             data.append(Round(x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8], x[9], x[10], x[11]))
+        return data
+
+    def in_a_solo(self, guild, user):
+        query = f"""
+                    SELECT * FROM ongoing_solos
+                    WHERE
+                    guild = %s AND user_ = %s
+                """
+        curr = self.conn.cursor()
+        curr.execute(query, (guild, user))
+        data = curr.fetchall()
+        curr.close()
+        if len(data) > 0:
+            return True
+        return False
+
+    def add_to_ongoing_solo(self, ctx, user, problem, rating, alts):
+        query = f"""
+                    INSERT INTO ongoing_solos
+                    VALUES
+                    (%s, %s, %s, %s, %s, %s, %s, %s)
+                """
+        curr = self.conn.cursor()
+        curr.execute(query, (ctx.guild.id, ctx.channel.id, user.id, int(time.time()),
+                             f"{problem.id}/{problem.index}", rating, int(time.time()), -1))
+        self.add_to_alt_table_solo(ctx, user, alts)
+        self.conn.commit()
+        curr.close()
+
+    def add_to_alt_table_solo(self, ctx, user, handles):
+        if len(handles) == 0:
+            return
+        query = f"""
+                    INSERT INTO ongoing_solo_alts
+                    VALUES
+                    (%s, %s, %s)
+                """
+        curr = self.conn.cursor()
+        curr.execute(query, (ctx.guild.id, user, ' '.join(map(str, handles))))
+        self.conn.commit()
+        curr.close()
+
+    def fetch_alts_solo(self, guild, user):
+        query = f"""
+                    SELECT * FROM ongoing_solo_alts
+                    WHERE
+                    guild = %s AND user_ = %s
+                """
+        curr = self.conn.cursor()
+        curr.execute(query, (guild, user))
+        data = curr.fetchone()
+        curr.close()
+        if not data:
+            return []
+        data = data[-1]
+        return data.split()
+
+    def get_solo_info(self, guild, user):
+        query = f"""
+                    SELECT * FROM ongoing_solos
+                    WHERE
+                    guild = %s AND user_ = %s
+                 """
+        curr = self.conn.cursor()
+        curr.execute(query, (guild, user))
+        data = curr.fetchone()
+        curr.close()
+        Solo = namedtuple('Solo', 'guild channel user time problem rating start_time duration')
+        return Solo(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7])
+
+    def get_all_solos(self, guild=None):
+        query = f"""
+                    SELECT * FROM ongoing_solos
+                """
+        if guild is not None:
+            query += f" WHERE guild = {guild}"
+        curr = self.conn.cursor()
+        curr.execute(query)
+        res = curr.fetchall()
+        curr.close()
+        Solo = namedtuple('Solo', 'guild channel user time problem rating start_time duration')
+        return [Solo(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]) for data in res]
+
+    def update_solo_status(self, guild, user, duration):
+        query = f"""
+                    UPDATE ongoing_solos
+                    SET
+                    duration = %s
+                    WHERE
+                    guild = %s AND user_ = %s 
+                """
+        curr = self.conn.cursor()
+        curr.execute(query, (duration, guild, user))
+        self.conn.commit()
+        curr.close()
+
+    def delete_solo(self, guild, user):
+        query = f"""
+                    DELETE FROM ongoing_solos
+                    WHERE
+                    guild = %s AND user_ = %s
+                """
+        curr = self.conn.cursor()
+        curr.execute(query, (guild, user))
+        self.conn.commit()
+
+        query = f"""
+                    DELETE FROM ongoing_solo_alts
+                    WHERE
+                    guild = %s AND USER_ = %s
+                """
+        curr.execute(query, (guild, user))
+        self.conn.commit()
+        curr.close()
+
+    def add_to_finished_solos(self, solo_info):
+        query = f"""
+                    INSERT INTO finished_solos
+                    VALUES
+                    (%s, %s, %s, %s, %s, %s, %s, %s)
+                """
+        curr = self.conn.cursor()
+        curr.execute(query, (solo_info.guild, solo_info.channel, solo_info.user, solo_info.time, solo_info.problem,
+                             solo_info.rating, solo_info.start_time, solo_info.duration))
+        self.conn.commit()
+        curr.close()
+
+    def get_recent_solos(self, guild, user=None):
+        query = f"""
+                    SELECT * FROM finished_solos
+                    WHERE guild = %s
+                    ORDER BY start_time DESC
+                """
+        if user:
+            query = f"""
+                        SELECT * FROM finished_solos
+                        WHERE guild = %s AND user_ = %s
+                        ORDER BY start_time DESC
+                    """
+        curr = self.conn.cursor()
+        curr.execute(query, (guild, ) if user is None else (guild, user))
+        res = curr.fetchall()
+        curr.close()
+        Solo = namedtuple('Solo', 'guild channel user time problem rating start_time duration')
+        data = []
+        for x in res:
+            data.append(Solo(x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7]))
         return data
 
     def add_problem(self, id, index, name, type, rating):

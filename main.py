@@ -10,16 +10,20 @@ from discord.ext.commands import CommandNotFound, CommandOnCooldown, MissingPerm
 from utils import tasks
 from constants import AUTO_UPDATE_TIME
 
+from dotenv import load_dotenv
+
+load_dotenv('.env')
+
 intents = discord.Intents.default()
 intents.members = False
-client = Bot(case_insensitive=True, description="Lockout Bot", command_prefix=when_mentioned_or("."), intents=intents)
+client = Bot(case_insensitive=True, description="Lockout Bot", command_prefix=when_mentioned_or(";"), intents=intents)
 
 logging_channel = None
 
 
 @client.event
 async def on_ready():
-    await client.change_presence(activity=discord.Game(name="in matches ⚔️"))
+    await client.change_presence(activity=discord.Game(name=";help"))
     global logging_channel
     logging_channel = await client.fetch_channel(os.environ.get("LOGGING_CHANNEL"))
     await logging_channel.send(f"Bot ready")
@@ -36,6 +40,7 @@ async def on_ready():
 async def update():
     await tasks.update_matches(client)
     await tasks.update_rounds(client)
+    await tasks.update_solos(client)
 
 
 @client.event
@@ -89,5 +94,5 @@ if __name__ == "__main__":
                 print(f'Failed to load file {filename}: {str(e)}')
                 print(str(e))
 
-    token = os.environ.get('LOCKOUT_BOT_TOKEN')
+    token = os.environ.get("BOT_TOKEN")
     client.run(token)

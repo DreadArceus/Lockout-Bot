@@ -181,3 +181,30 @@ async def update_round(round_info):
     if not judging and (enter_time > round_info.time + 60 * round_info.duration or (round_info.repeat == 0 and no_round_change_possible(status[:], points, problems))):
         over = True
     return [True, [updates, over, updated]]
+
+
+async def update_solo(solo_info):
+    user = solo_info.user
+    handle = db.get_handle(solo_info.guild, user)
+    subs = await cf.get_user_problems(handle, RECENT_SUBS_LIMIT)
+    if not subs[0]:
+        return subs
+
+    sub = subs[1]
+    over, updated = False, False
+    end = 0
+    problem = solo_info.problem
+
+    if problem == '0':
+        updated = False
+    else:
+        sub_time = codeforces.get_solve_time(sub, problem.split('/')[0], problem.split('/')[1])
+        if sub_time == -1:
+            updated = False
+        elif sub_time != 1e18:
+            over = True
+            end = sub_time
+
+    if over:
+        db.update_solo_status(solo_info.guild, solo_info.user, end - solo_info.start_time)
+    return [True, [updated, over]]

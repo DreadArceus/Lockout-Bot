@@ -215,6 +215,22 @@ def round_problems_embed(round_info):
     return embed
 
 
+def solo_embed(solo_info, user):
+    problem = solo_info.problem
+    name = f"[{db.get_problems(problem)[0].name}](https://codeforces.com/contest/{problem.split('/')[0]}/problem/{problem.split('/')[1]})"
+
+    desc = f"{user.mention} your time has come <:god:856773838627799042>"
+
+    embed = discord.Embed(description=desc, color=discord.Color.magenta())
+    embed.set_author(name=f"Solo Levelling")
+
+    embed.add_field(name="Problem Name", value=name, inline=True)
+    embed.add_field(name="Rating", value=solo_info.rating, inline=True)
+    embed.set_footer(text=f"Time passed: {timeez(int(time.time()) - solo_info.start_time)}")
+
+    return embed
+
+
 def recent_rounds_embed(data):
     content = []
 

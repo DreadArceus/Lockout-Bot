@@ -16,7 +16,7 @@ MAX_ROUND_USERS = 5
 LOWER_RATING = 800
 UPPER_RATING = 3600
 MATCH_DURATION = [5, 180]
-MAX_PROBLEMS = 6
+MAX_PROBLEMS = 10
 MAX_ALTS = 5
 ROUNDS_PER_PAGE = 5
 
@@ -29,7 +29,7 @@ class Round(commands.Cog):
         self.api = challonge_api.ChallongeAPI(self.client)
 
     def make_round_embed(self, ctx):
-        desc = "Information about Matches related commands! **[use .round <command>]**\n\n"
+        desc = "Information about Matches related commands! **[use ;round <command>]**\n\n"
         match = self.client.get_command('round')
 
         for cmd in match.commands:
@@ -37,7 +37,7 @@ class Round(commands.Cog):
         embed = discord.Embed(description=desc, color=discord.Color.dark_magenta())
         embed.set_author(name="Lockout commands help", icon_url=ctx.me.avatar_url)
         embed.set_footer(
-            text="Use the prefix . before each command. For detailed usage about a particular command, type .help match <command>")
+            text="Use the prefix . before each command. For detailed usage about a particular command, type ;help match <command>")
         embed.add_field(name="GitHub repository", value=f"[GitHub](https://github.com/pseudocoder10/Lockout-Bot)",
                         inline=True)
         embed.add_field(name="Bot Invite link",
@@ -47,7 +47,7 @@ class Round(commands.Cog):
                         inline=True)
         return embed
 
-    @commands.group(brief='Commands related to rounds! Type .round for more details', invoke_without_command=True)
+    @commands.group(brief='Commands related to rounds! Type ;round for more details', invoke_without_command=True)
     async def round(self, ctx):
         await ctx.send(embed=self.make_round_embed(ctx))
 
@@ -55,7 +55,7 @@ class Round(commands.Cog):
     async def challenge(self, ctx, *users: discord.Member):
         users = list(set(users))
         if len(users) == 0:
-            await discord_.send_message(ctx, f"The correct usage is `.round challenge @user1 @user2...`")
+            await discord_.send_message(ctx, f"The correct usage is `;round challenge @user1 @user2...`")
             return
         if ctx.author not in users:
             users.append(ctx.author)
@@ -64,7 +64,7 @@ class Round(commands.Cog):
             return
         for i in users:
             if not self.db.get_handle(ctx.guild.id, i.id):
-                await discord_.send_message(ctx, f"Handle for {i.mention} not set! Use `.handle identify` to register")
+                await discord_.send_message(ctx, f"Handle for {i.mention} not set! Use `;handle identify` to register")
                 return
             if self.db.in_a_round(ctx.guild.id, i.id):
                 await discord_.send_message(ctx, f"{i.mention} is already in a round!")
@@ -417,7 +417,7 @@ class Round(commands.Cog):
     async def custom(self, ctx, *users: discord.Member):
         users = list(set(users))
         if len(users) == 0:
-            await discord_.send_message(ctx, f"The correct usage is `.round custom @user1 @user2...`")
+            await discord_.send_message(ctx, f"The correct usage is `;round custom @user1 @user2...`")
             return
         if ctx.author not in users:
             users.append(ctx.author)
@@ -426,7 +426,7 @@ class Round(commands.Cog):
             return
         for i in users:
             if not self.db.get_handle(ctx.guild.id, i.id):
-                await discord_.send_message(ctx, f"Handle for {i.mention} not set! Use `.handle identify` to register")
+                await discord_.send_message(ctx, f"Handle for {i.mention} not set! Use `;handle identify` to register")
                 return
             if self.db.in_a_round(ctx.guild.id, i.id):
                 await discord_.send_message(ctx, f"{i.mention} is already in a round!")

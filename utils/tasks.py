@@ -4,6 +4,8 @@ import time
 import traceback
 import asyncio
 
+from humanfriendly import format_timespan as timeez
+
 from datetime import date
 from operator import itemgetter
 
@@ -168,6 +170,41 @@ async def update_rounds(client):
         except Exception as e:
             logging_channel = await client.fetch_channel(os.environ.get("LOGGING_CHANNEL"))
             await logging_channel.send(f"Error while updating rounds: {str(traceback.format_exc())}")
+
+
+async def update_solos(client):
+    solos = db.get_all_solos()
+
+    for solo in solos:
+        try:
+            guild = client.get_guild(solo.guild)
+            resp = await updation.update_solo(solo)
+            if not resp[0]:
+                logging_channel = await client.fetch_channel(os.environ.get("LOGGING_CHANNEL"))
+                await logging_channel.send(f"Error while updating solo: {resp[1]}")
+                continue
+            resp = resp[1]
+            channel = client.get_channel(solo.channel)
+
+            if resp[1]:
+                await channel.send(f"{(await guild.fetch_member(solo.user)).mention} there is an update")
+
+            if resp[1]:
+                solo_info = db.get_solo_info(solo.guild, solo.user)
+
+                db.delete_solo(solo_info.guild, solo_info.user)
+                db.add_to_finished_solos(solo_info)
+
+                embed = discord.Embed(color=discord.Color.dark_magenta())
+                embed.add_field(name="User", value=(await guild.fetch_member(solo.user)).mention)
+                embed.add_field(name="Problem Rating", value=solo_info.rating)
+                embed.add_field(name="Time Taken", value=timeez(solo_info.duration))
+                embed.set_author(name=f"Solo over! Final time")
+                await channel.send(embed=embed)
+
+        except Exception as e:
+            logging_channel = await client.fetch_channel(os.environ.get("LOGGING_CHANNEL"))
+            await logging_channel.send(f"Error while updating solos: {str(traceback.format_exc())}")
 
 
 async def create_backup(client):

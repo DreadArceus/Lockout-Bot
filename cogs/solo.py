@@ -91,7 +91,7 @@ class Solo(commands.Cog):
 
         problems = problems[1]
 
-        self.db.add_to_ongoing_solo(ctx, user, problems[0], rating[0], alts)
+        self.db.add_to_ongoing_solo(ctx, user, problems[0], rating[0], tags, alts)
         solo_info = self.db.get_solo_info(ctx.guild.id, user.id)
 
         await ctx.send(embed=discord_.solo_embed(solo_info, user))

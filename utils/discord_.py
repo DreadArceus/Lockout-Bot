@@ -255,6 +255,8 @@ def solo_embed(solo_info, user):
 
     embed.add_field(name="Problem Name", value=name, inline=True)
     embed.add_field(name="Rating", value=solo_info.rating, inline=True)
+    if solo_info.tags != "none":
+        embed.add_field(name="Matched Tags", value=f"`{solo_info.tags}`", inline=True)
     embed.set_footer(text=f"Time passed: {timeez(int(time.time()) - solo_info.start_time)}")
 
     return embed

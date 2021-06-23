@@ -61,7 +61,7 @@ def filter_problems(all_problems, user_problems, handles):
     return unsolved
 
 
-async def find_problems(handles, ratings):
+async def find_problems(handles, ratings, tags=None):
     all_problems = db.get_problems()
     user_problems = []
     for handle in handles:
@@ -77,12 +77,26 @@ async def find_problems(handles, ratings):
     selected = []
     for x in ratings:
         problem = None
-        options = [p for p in unsolved_problems if p.rating == x and p not in selected]
+        options = []
+        if tags is None:
+            options = [p for p in unsolved_problems if p.rating == x and p not in selected]
+        else:
+            for p in unsolved_problems:
+                if p.rating == x and p not in selected:
+                    good = True
+                    p_tags = p.tags.split(',')
+                    for tag in tags:
+                        if tag not in p_tags:
+                            good = False
+                    if good:
+                        options.append(p)
         weights = [int(p.id * math.sqrt(p.id)) for p in options]
         if options:
             problem = random.choices(options, weights, k=1)[0]
         if not problem:
-            return [False, f"Not enough problems with rating {x} left!"]
+            if tags is None:
+                return [False, f"Not enough problems with rating {x} left!"]
+            return [False, f"Not enough problems with rating {x} and tags: `{','.join(tags)}` left!"]
         selected.append(problem)
 
     return [True, selected]

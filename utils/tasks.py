@@ -288,7 +288,7 @@ async def update_problemset(client):
         for problem in problem_list:
             if problem['contestId'] in mapping and not isNonStandard(mapping[problem['contestId']]) and 'rating' in problem and problem['contestId'] not in problem_id:
                 prob_cnt += 1
-                db.add_problem(problem['contestId'], problem['index'], problem['name'], problem['type'], problem['rating'])
+                db.add_problem(problem['contestId'], problem['index'], problem['name'], problem['type'], problem['rating'], problem['tags'])
         await logging_channel.send(f"Problemset Updated, added {con_cnt} new contests and {prob_cnt} new problems")
     except Exception as e:
         await logging_channel.send(f"Error while updating problemset: {str(traceback.format_exc())}")

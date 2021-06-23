@@ -110,6 +110,35 @@ async def get_alt_response(client, ctx, message, limit, time, author):
             return False
 
 
+async def get_tag_response(client, ctx, message, limit, time, author):
+    original = await ctx.send(embed=discord.Embed(description=message, color=discord.Color.green()))
+
+    async def check(m):
+        if m.author != author:
+            return False
+        if m.content.lower() == "none":
+            return True, None
+        data = [x.lower().strip() for x in m.content.strip().split(',')]
+        if len(data) > limit or len(data) <= 0:
+            return False
+        return True, data
+
+    def check1(m):
+        return m.author == author and m.channel.id == ctx.channel.id
+
+    while True:
+        try:
+            msg = await client.wait_for('message', timeout=time, check=check1)
+            res = await check(msg)
+            if not res:
+                continue
+            await original.delete()
+            return True, res[1]
+        except asyncio.TimeoutError:
+            await original.delete()
+            return False
+
+
 async def get_problems_response(client, ctx, message, time, length, author):
     original = await ctx.send(embed=discord.Embed(description=message, color=discord.Color.green()))
 

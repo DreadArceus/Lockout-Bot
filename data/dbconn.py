@@ -408,11 +408,11 @@ class DbConn:
             curr.execute(query, (id.split('/')[0], id.split('/')[1]))
 
         res = curr.fetchall()
-        Problem = namedtuple('Problem', 'id index name type rating')
+        Problem = namedtuple('Problem', 'id index name type rating tags')
         curr.close()
         data = []
         for x in res:
-            data.append(Problem(x[0], x[1], x[2], x[3], x[4]))
+            data.append(Problem(x[0], x[1], x[2], x[3], x[4], x[5]))
         return data
 
     def get_contest_name(self, contest_id):
@@ -941,15 +941,14 @@ class DbConn:
             data.append(Solo(x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7]))
         return data
 
-    def add_problem(self, id, index, name, type, rating):
+    def add_problem(self, id, index, name, type, rating, tags):
         query = f"""
                     INSERT INTO problems
-                    (id, index, name, type, rating)
                     VALUES
-                    (%s, %s, %s, %s, %s)
+                    (%s, %s, %s, %s, %s, %s)
                 """
         curr = self.conn.cursor()
-        curr.execute(query, (id, index, name, type, rating))
+        curr.execute(query, (id, index, name, type, rating, ','.join(tags)))
         self.conn.commit()
         curr.close()
 

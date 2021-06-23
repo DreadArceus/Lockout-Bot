@@ -14,6 +14,7 @@ from constants import AUTO_UPDATE_TIME
 
 LOWER_RATING = 800
 UPPER_RATING = 3600
+MAX_TAGS = 5
 MAX_ALTS = 5
 
 
@@ -61,6 +62,15 @@ class Solo(commands.Cog):
             return
         rating = rating[1]
 
+        tags = await discord_.get_tag_response(self.client, ctx, f"{user.mention} Do you want to specify any tags? "
+                                                                 f"Type none if not applicable else type"
+                                                                 f"`tag 1, tag 2, tag 3 ...` You can add upto **"
+                                                                 f"{MAX_TAGS}** tags", MAX_TAGS, 60, user)
+        if not tags[0]:
+            await discord_.send_message(ctx, f"{user.mention} you took too long to decide")
+            return
+        tags = tags[1]
+
         alts = await discord_.get_alt_response(self.client, ctx, f"{user.mention} Do you want to add any alts? "
                                                                  f"Type none if not applicable else type `alts: "
                                                                  f"handle_1 handle_2 ...` You can add upto **"
@@ -74,7 +84,7 @@ class Solo(commands.Cog):
 
         await ctx.send(embed=discord.Embed(description="Starting...", color=discord.Color.green()))
 
-        problems = await codeforces.find_problems([self.db.get_handle(ctx.guild.id, user.id)]+alts, rating)
+        problems = await codeforces.find_problems([self.db.get_handle(ctx.guild.id, user.id)]+alts, rating, tags)
         if not problems[0]:
             await discord_.send_message(ctx, problems[1])
             return

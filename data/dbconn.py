@@ -195,7 +195,7 @@ class DbConn:
         cmds.append("""
                         CREATE TABLE IF NOT EXISTS queue(
                             guild BIGINT,
-                            user_ BIGINT,
+                            user_ BIGINT
                     )
                     """)
         try:

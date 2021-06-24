@@ -16,6 +16,12 @@ class Misc(commands.Cog):
         self.db = dbconn.DbConn()
         self.uptime = int(time.time())
 
+    @commands.command(name="god", hidden=True)
+    async def god(self, ctx, member: discord.Member, score, loss):
+        if ctx.author.id not in OWNERS:
+            return
+        self.db.update_solo_score(ctx.guild.id, member.id, score, loss)
+
     @commands.command(name="updateratings", hidden=True)
     async def updateratings(self, ctx):
         if ctx.author.id not in OWNERS:

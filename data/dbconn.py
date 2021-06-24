@@ -984,6 +984,15 @@ class DbConn:
         self.conn.commit()
         curr.close()
 
+    def erase_queue(self):
+        query = f"""
+                    DELETE FROM queue
+                """
+        curr = self.conn.cursor()
+        curr.execute(query)
+        self.conn.commit()
+        curr.close()
+
     def add_problem(self, id, index, name, type, rating, tags):
         query = f"""
                     INSERT INTO problems

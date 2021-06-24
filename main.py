@@ -9,6 +9,7 @@ from discord.ext.commands import CommandNotFound, CommandOnCooldown, MissingPerm
 
 from utils import tasks
 from constants import AUTO_UPDATE_TIME
+from data import dbconn
 
 from dotenv import load_dotenv
 
@@ -27,6 +28,7 @@ async def on_ready():
     global logging_channel
     logging_channel = await client.fetch_channel(os.environ.get("LOGGING_CHANNEL"))
     await logging_channel.send(f"Bot ready")
+    dbconn.DbConn().clear_queue()
 
     scheduler = AsyncIOScheduler()
     scheduler.add_job(update, 'interval', seconds=AUTO_UPDATE_TIME)

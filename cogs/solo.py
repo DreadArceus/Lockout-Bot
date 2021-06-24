@@ -59,48 +59,50 @@ class Solo(commands.Cog):
             return
         self.db.add_to_queue(ctx.guild.id, user.id)
 
-        rating = await discord_.get_seq_response(self.client, ctx, f"{user.mention} enter the rating of problem "
-                                                                   f"(between {LOWER_RATING} and {UPPER_RATING})",
-                                                 60, 1, user, [LOWER_RATING, UPPER_RATING])
-        if not rating[0]:
-            await discord_.send_message(ctx, f"{user.mention} you took too long to decide")
-            return
-        rating = rating[1]
+        try:
+            rating = await discord_.get_seq_response(self.client, ctx, f"{user.mention} enter the rating of problem "
+                                                                       f"(between {LOWER_RATING} and {UPPER_RATING})",
+                                                     60, 1, user, [LOWER_RATING, UPPER_RATING])
+            if not rating[0]:
+                await discord_.send_message(ctx, f"{user.mention} you took too long to decide")
+                return
+            rating = rating[1]
 
-        tags = await discord_.get_tag_response(self.client, ctx, f"{user.mention} Do you want to specify any tags? "
-                                                                 f"Type none if not applicable else type"
-                                                                 f"`tag 1, tag 2, tag 3 ...` You can add upto **"
-                                                                 f"{MAX_TAGS}** tags", MAX_TAGS, 60, user)
-        if not tags[0]:
-            await discord_.send_message(ctx, f"{user.mention} you took too long to decide")
-            return
-        tags = tags[1]
+            tags = await discord_.get_tag_response(self.client, ctx, f"{user.mention} Do you want to specify any tags? "
+                                                                     f"Type none if not applicable else type"
+                                                                     f"`tag 1, tag 2, tag 3 ...` You can add upto **"
+                                                                     f"{MAX_TAGS}** tags", MAX_TAGS, 60, user)
+            if not tags[0]:
+                await discord_.send_message(ctx, f"{user.mention} you took too long to decide")
+                return
+            tags = tags[1]
 
-        alts = await discord_.get_alt_response(self.client, ctx, f"{user.mention} Do you want to add any alts? "
-                                                                 f"Type none if not applicable else type `alts: "
-                                                                 f"handle_1 handle_2 ...` You can add upto **"
-                                                                 f"{MAX_ALTS}** alt(s)", MAX_ALTS, 60, user)
+            alts = await discord_.get_alt_response(self.client, ctx, f"{user.mention} Do you want to add any alts? "
+                                                                     f"Type none if not applicable else type `alts: "
+                                                                     f"handle_1 handle_2 ...` You can add upto **"
+                                                                     f"{MAX_ALTS}** alt(s)", MAX_ALTS, 60, user)
 
-        if not alts:
-            await discord_.send_message(ctx, f"{user.mention} you took too long to decide")
-            return
+            if not alts:
+                await discord_.send_message(ctx, f"{user.mention} you took too long to decide")
+                return
 
-        alts = alts[1]
+            alts = alts[1]
 
-        await ctx.send(embed=discord.Embed(description="Starting...", color=discord.Color.green()))
+            await ctx.send(embed=discord.Embed(description="Starting...", color=discord.Color.green()))
 
-        problems = await codeforces.find_problems([self.db.get_handle(ctx.guild.id, user.id)]+alts, rating, tags)
-        if not problems[0]:
-            await discord_.send_message(ctx, problems[1])
-            return
+            problems = await codeforces.find_problems([self.db.get_handle(ctx.guild.id, user.id)]+alts, rating, tags)
+            if not problems[0]:
+                await discord_.send_message(ctx, problems[1])
+                return
 
-        problems = problems[1]
+            problems = problems[1]
 
-        self.db.add_to_ongoing_solo(ctx, user, problems[0], rating[0], tags, alts)
-        self.db.remove_from_queue(ctx.guild.id, user.id)
-        solo_info = self.db.get_solo_info(ctx.guild.id, user.id)
+            self.db.add_to_ongoing_solo(ctx, user, problems[0], rating[0], tags, alts)
+            solo_info = self.db.get_solo_info(ctx.guild.id, user.id)
 
-        await ctx.send(embed=discord_.solo_embed(solo_info, user))
+            await ctx.send(embed=discord_.solo_embed(solo_info, user))
+        finally:
+            self.db.remove_from_queue(ctx.guild.id, user.id)
 
     @solo.command(name="doing", brief="When you know what you want to solve but are addicted to solo")
     async def doing(self, ctx):
@@ -120,23 +122,25 @@ class Solo(commands.Cog):
             return
         self.db.add_to_queue(ctx.guild.id, user.id)
 
-        ids = await discord_.get_problems_response(self.client, ctx,
-                                                   f"{ctx.author.mention} enter problem id denoting the problem. "
-                                                   f"Eg: `123/A`",
-                                                   60, 1, ctx.author)
-        if not ids[0]:
-            await discord_.send_message(ctx, f"{ctx.author.mention} you took too long to decide")
-            return
+        try:
+            ids = await discord_.get_problems_response(self.client, ctx,
+                                                       f"{ctx.author.mention} enter problem id denoting the problem. "
+                                                       f"Eg: `123/A`",
+                                                       60, 1, ctx.author)
+            if not ids[0]:
+                await discord_.send_message(ctx, f"{ctx.author.mention} you took too long to decide")
+                return
 
-        problem = ids[1][0]
+            problem = ids[1][0]
 
-        await ctx.send(embed=discord.Embed(description="Starting...", color=discord.Color.green()))
+            await ctx.send(embed=discord.Embed(description="Starting...", color=discord.Color.green()))
 
-        self.db.add_to_ongoing_solo(ctx, user, problem, problem.rating, problem.tags.split(','), [])
-        self.db.remove_from_queue(ctx.guild.id, user.id)
-        solo_info = self.db.get_solo_info(ctx.guild.id, user.id)
+            self.db.add_to_ongoing_solo(ctx, user, problem, problem.rating, problem.tags.split(','), [])
+            solo_info = self.db.get_solo_info(ctx.guild.id, user.id)
 
-        await ctx.send(embed=discord_.solo_embed(solo_info, user))
+            await ctx.send(embed=discord_.solo_embed(solo_info, user))
+        finally:
+            self.db.remove_from_queue(ctx.guild.id, user.id)
 
     @solo.command(brief="Update solo status for the server")
     @cooldown(1, AUTO_UPDATE_TIME, BucketType.guild)

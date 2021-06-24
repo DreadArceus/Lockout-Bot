@@ -9,8 +9,7 @@ from dotenv import load_dotenv
 class DbConn:
     def __init__(self):
         load_dotenv('.env')
-        self.conn = psycopg2.connect(database=os.environ.get("DB_NAME"), user=os.environ.get("DB_USERNAME"),
-                                     password=os.environ.get("DB_PASSWORD"), host="127.0.0.1", port="5432")
+        self.conn = psycopg2.connect(os.environ.get('DATABASE_URL'), sslmode='require')
         self.make_tables()
 
     def make_tables(self):

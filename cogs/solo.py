@@ -56,6 +56,7 @@ class Solo(commands.Cog):
 
         if self.db.in_queue(ctx.guild.id, user.id):
             await discord_.send_message(ctx, f"{user.mention} bruv pls dont use it again")
+            return
         self.db.add_to_queue(ctx.guild.id, user.id)
 
         rating = await discord_.get_seq_response(self.client, ctx, f"{user.mention} enter the rating of problem "
@@ -116,6 +117,7 @@ class Solo(commands.Cog):
 
         if self.db.in_queue(ctx.guild.id, user.id):
             await discord_.send_message(ctx, f"{user.mention} bruv pls dont use it again")
+            return
         self.db.add_to_queue(ctx.guild.id, user.id)
 
         ids = await discord_.get_problems_response(self.client, ctx,

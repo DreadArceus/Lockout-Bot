@@ -96,6 +96,36 @@ class Solo(commands.Cog):
 
         await ctx.send(embed=discord_.solo_embed(solo_info, user))
 
+    @solo.command(name="doing", brief="When you know what you want to solve but are addicted to solo")
+    async def doing(self, ctx):
+        user = ctx.author
+
+        if self.db.in_a_solo(ctx.guild.id, user.id):
+            await discord_.send_message(ctx, f"{user.mention} finish you current solo first, or if you give up use "
+                                             f"`;solo loser`")
+            return
+
+        if not self.db.get_handle(ctx.guild.id, user.id):
+            await discord_.send_message(ctx, f"Handle for {user.mention} not set! Use `;handle identify` to register")
+            return
+
+        ids = await discord_.get_problems_response(self.client, ctx,
+                                                        f"{ctx.author.mention} enter problem id denoting the problem. "
+                                                        f"Eg: `123/A`",
+                                                        60, 1, ctx.author)
+        if not ids[0]:
+            await discord_.send_message(ctx, f"{ctx.author.mention} you took too long to decide")
+            return
+
+        problem = ids[1][0]
+
+        await ctx.send(embed=discord.Embed(description="Starting...", color=discord.Color.green()))
+
+        self.db.add_to_ongoing_solo(ctx, user, problem, problem.rating, problem.tags.split(','), [])
+        solo_info = self.db.get_solo_info(ctx.guild.id, user.id)
+
+        await ctx.send(embed=discord_.solo_embed(solo_info, user))
+
     @solo.command(brief="Update solo status for the server")
     @cooldown(1, AUTO_UPDATE_TIME, BucketType.guild)
     async def update(self, ctx):

@@ -152,6 +152,11 @@ async def get_problems_response(client, ctx, message, time, length, author):
             problem = i.split('/')
             if len(problem) != 2:
                 return False
+            try:
+                if int(problem[0]) > 1e5:
+                    return False
+            except ValueError:
+                return False
             if not db.get_problems(i.upper()):
                 return False
         return True

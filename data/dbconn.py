@@ -192,6 +192,12 @@ class DbConn:
                             challonge_id BIGINT
                     )
                     """)
+        cmds.append("""
+                        CREATE TABLE IF NOT EXISTS queue(
+                            guild BIGINT,
+                            user_ BIGINT,
+                    )
+                    """)
         try:
             curr = self.conn.cursor()
             for x in cmds:
@@ -941,6 +947,42 @@ class DbConn:
         for x in res:
             data.append(Solo(x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8]))
         return data
+
+    def add_to_queue(self, guild, user):
+        query = f"""
+                    INSERT INTO queue
+                    VALUES
+                    (%s, %s)
+                """
+        curr = self.conn.cursor()
+        curr.execute(query, (guild, user))
+        self.conn.commit()
+        curr.close()
+
+    def in_queue(self, guild, user):
+        query = f"""
+                    SELECT * FROM queue
+                    WHERE
+                    guild = %s AND user_ = %s
+                """
+        curr = self.conn.cursor()
+        curr.execute(query, (guild, user))
+        data = curr.fetchall()
+        curr.close()
+        if len(data) == 0:
+            return False
+        return True
+
+    def remove_from_queue(self, guild, user):
+        query = f"""
+                    DELETE FROM queue
+                    WHERE
+                    guild = %s AND user_ = %s
+                """
+        curr = self.conn.cursor()
+        curr.execute(query, (guild, user))
+        self.conn.commit()
+        curr.close()
 
     def add_problem(self, id, index, name, type, rating, tags):
         query = f"""

@@ -54,6 +54,10 @@ class Solo(commands.Cog):
             await discord_.send_message(ctx, f"Handle for {user.mention} not set! Use `;handle identify` to register")
             return
 
+        if self.db.in_queue(ctx.guild.id, user.id):
+            await discord_.send_message(ctx, f"{user.mention} bruv pls dont use it again")
+        self.db.add_to_queue(ctx.guild.id, user.id)
+
         rating = await discord_.get_seq_response(self.client, ctx, f"{user.mention} enter the rating of problem "
                                                                    f"(between {LOWER_RATING} and {UPPER_RATING})",
                                                  60, 1, user, [LOWER_RATING, UPPER_RATING])
@@ -92,6 +96,7 @@ class Solo(commands.Cog):
         problems = problems[1]
 
         self.db.add_to_ongoing_solo(ctx, user, problems[0], rating[0], tags, alts)
+        self.db.remove_from_queue(ctx.guild.id, user.id)
         solo_info = self.db.get_solo_info(ctx.guild.id, user.id)
 
         await ctx.send(embed=discord_.solo_embed(solo_info, user))
@@ -109,6 +114,10 @@ class Solo(commands.Cog):
             await discord_.send_message(ctx, f"Handle for {user.mention} not set! Use `;handle identify` to register")
             return
 
+        if self.db.in_queue(ctx.guild.id, user.id):
+            await discord_.send_message(ctx, f"{user.mention} bruv pls dont use it again")
+        self.db.add_to_queue(ctx.guild.id, user.id)
+
         ids = await discord_.get_problems_response(self.client, ctx,
                                                    f"{ctx.author.mention} enter problem id denoting the problem. "
                                                    f"Eg: `123/A`",
@@ -122,6 +131,7 @@ class Solo(commands.Cog):
         await ctx.send(embed=discord.Embed(description="Starting...", color=discord.Color.green()))
 
         self.db.add_to_ongoing_solo(ctx, user, problem, problem.rating, problem.tags.split(','), [])
+        self.db.remove_from_queue(ctx.guild.id, user.id)
         solo_info = self.db.get_solo_info(ctx.guild.id, user.id)
 
         await ctx.send(embed=discord_.solo_embed(solo_info, user))

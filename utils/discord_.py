@@ -153,7 +153,7 @@ async def get_problems_response(client, ctx, message, time, length, author):
             if len(problem) != 2:
                 return False
             try:
-                if int(problem[0]) > 1e5:
+                if int(problem[0]) > 1e8:
                     return False
             except ValueError:
                 return False

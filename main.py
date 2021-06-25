@@ -40,10 +40,9 @@ async def on_ready():
 
 
 async def update():
-    return
-    # await tasks.update_matches(client)
-    # await tasks.update_rounds(client)
-    # await tasks.update_solos(client)
+    await tasks.update_matches(client)
+    await tasks.update_rounds(client)
+    await tasks.update_solos(client)
 
 
 @client.event

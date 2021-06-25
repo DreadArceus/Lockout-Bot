@@ -765,7 +765,7 @@ class DbConn:
             return True
         return False
 
-    def add_to_ongoing_solo(self, ctx, user, problem, rating, tags, alts, redo=False):
+    def add_to_ongoing_solo(self, ctx, user, problem, rating, tags, alts, redo: int = 0):
         query = f"""
                     INSERT INTO ongoing_solos
                     VALUES
@@ -773,7 +773,7 @@ class DbConn:
                 """
         curr = self.conn.cursor()
         curr.execute(query, (ctx.guild.id, ctx.channel.id, user.id, int(time.time()), f"{problem.id}/{problem.index}",
-                             rating, "none" if tags is None else ','.join(tags), int(time.time()), -1, int(redo)))
+                             rating, "none" if tags is None else ','.join(tags), int(time.time()), -1, redo))
         self.add_to_alt_table_solo(ctx, user, alts)
         self.conn.commit()
         curr.close()

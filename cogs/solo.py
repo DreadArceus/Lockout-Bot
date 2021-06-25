@@ -140,6 +140,7 @@ class Solo(commands.Cog):
             redo = await codeforces.check_solved([self.db.get_handle(ctx.guild.id, user.id)], problem.id, problem.index)
             print(redo)
             self.db.add_to_ongoing_solo(ctx, user, problem, problem.rating, problem.tags.split(','), [], redo)
+            print("bruh")
             solo_info = self.db.get_solo_info(ctx.guild.id, user.id)
             print(solo_info)
 

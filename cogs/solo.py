@@ -135,7 +135,7 @@ class Solo(commands.Cog):
 
             await ctx.send(embed=discord.Embed(description="Starting...", color=discord.Color.green()))
 
-            redo = await codeforces.check_solved(user, problem.id, problem.index)
+            redo = await codeforces.check_solved([self.db.get_handle(ctx.guild.id, user.id)], problem.id, problem.index)
             self.db.add_to_ongoing_solo(ctx, user, problem, problem.rating, problem.tags.split(','), [], redo)
             solo_info = self.db.get_solo_info(ctx.guild.id, user.id)
 

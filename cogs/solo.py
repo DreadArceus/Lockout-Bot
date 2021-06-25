@@ -135,7 +135,8 @@ class Solo(commands.Cog):
 
             await ctx.send(embed=discord.Embed(description="Starting...", color=discord.Color.green()))
 
-            self.db.add_to_ongoing_solo(ctx, user, problem, problem.rating, problem.tags.split(','), [])
+            redo = await codeforces.check_solved(user, problem.id.split('/')[0], problem.id.split('/')[1])
+            self.db.add_to_ongoing_solo(ctx, user, problem, problem.rating, problem.tags.split(','), [], redo)
             solo_info = self.db.get_solo_info(ctx.guild.id, user.id)
 
             await ctx.send(embed=discord_.solo_embed(solo_info, user))
@@ -166,7 +167,8 @@ class Solo(commands.Cog):
 
                     self.db.delete_solo(solo_info.guild, solo_info.user)
                     self.db.add_to_finished_solos(solo_info)
-                    self.db.update_solo_score(solo.guild, solo.user, (solo.rating / 100) ** 2)
+                    if not solo_info.redo:
+                        self.db.update_solo_score(solo.guild, solo.user, (solo.rating / 100) ** 2)
 
                     embed = discord.Embed(color=discord.Color.dark_magenta())
                     embed.add_field(name="User", value=(await ctx.guild.fetch_member(solo.user)).mention)

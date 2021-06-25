@@ -111,3 +111,15 @@ def get_solve_time(sub, id, index, solo_time=0):
             if x.verdict is None or x.verdict == 'TESTING':
                 return -1
     return best
+
+
+async def check_solved(handles, id, index):
+    ans = False
+    for handle in handles:
+        resp = await cf.get_user_problems(handle)
+        if not resp[0]:
+            return resp
+        for p in resp[1]:
+            if p.id == id and p.index == index:
+                ans = True
+    return ans

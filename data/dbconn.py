@@ -131,7 +131,8 @@ class DbConn:
                             rating INT,
                             tags TEXT,
                             start_time INT,
-                            duration INT
+                            duration INT,
+                            redo BOOL
                     )
                             """)
         cmds.append("""
@@ -151,7 +152,8 @@ class DbConn:
                             rating INT,
                             tags TEXT,
                             start_time INT,
-                            duration INT
+                            duration INT,
+                            redo BOOL
                     )
                             """)
         cmds.append("""
@@ -763,15 +765,15 @@ class DbConn:
             return True
         return False
 
-    def add_to_ongoing_solo(self, ctx, user, problem, rating, tags, alts):
+    def add_to_ongoing_solo(self, ctx, user, problem, rating, tags, alts, redo=False):
         query = f"""
                     INSERT INTO ongoing_solos
                     VALUES
-                    (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """
         curr = self.conn.cursor()
         curr.execute(query, (ctx.guild.id, ctx.channel.id, user.id, int(time.time()), f"{problem.id}/{problem.index}",
-                             rating, "none" if tags is None else ','.join(tags), int(time.time()), -1))
+                             rating, "none" if tags is None else ','.join(tags), int(time.time()), -1, int(redo)))
         self.add_to_alt_table_solo(ctx, user, alts)
         self.conn.commit()
         curr.close()
@@ -814,8 +816,8 @@ class DbConn:
         curr.execute(query, (guild, user))
         data = curr.fetchone()
         curr.close()
-        Solo = namedtuple('Solo', 'guild channel user time problem rating tags start_time duration')
-        return Solo(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8])
+        Solo = namedtuple('Solo', 'guild channel user time problem rating tags start_time duration redo')
+        return Solo(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9])
 
     def get_all_solos(self, guild=None):
         query = f"""
@@ -827,8 +829,9 @@ class DbConn:
         curr.execute(query)
         res = curr.fetchall()
         curr.close()
-        Solo = namedtuple('Solo', 'guild channel user time problem rating tags start_time duration')
-        return [Solo(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8]) for data in res]
+        Solo = namedtuple('Solo', 'guild channel user time problem rating tags start_time duration redo')
+        return [Solo(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9])
+                for data in res]
 
     def update_solo_status(self, guild, user, duration):
         query = f"""
@@ -918,11 +921,12 @@ class DbConn:
         query = f"""
                     INSERT INTO finished_solos
                     VALUES
-                    (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """
         curr = self.conn.cursor()
         curr.execute(query, (solo_info.guild, solo_info.channel, solo_info.user, solo_info.time, solo_info.problem,
-                             solo_info.rating, solo_info.tags, solo_info.start_time, solo_info.duration))
+                             solo_info.rating, solo_info.tags, solo_info.start_time,
+                             solo_info.duration, solo_info.redo))
         self.conn.commit()
         curr.close()
 
@@ -942,10 +946,10 @@ class DbConn:
         curr.execute(query, (guild, ) if user is None else (guild, user))
         res = curr.fetchall()
         curr.close()
-        Solo = namedtuple('Solo', 'guild channel user time problem rating tags start_time duration')
+        Solo = namedtuple('Solo', 'guild channel user time problem rating tags start_time duration redo')
         data = []
         for x in res:
-            data.append(Solo(x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8]))
+            data.append(Solo(x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8], x[9]))
         return data
 
     def add_to_queue(self, guild, user):
@@ -1203,4 +1207,17 @@ class DbConn:
         Tournament = namedtuple("Tournament", "guild name type id url winner time")
         return [Tournament(x[0], x[1], x[2], x[3], x[4], x[5], x[6]) for x in data]
 
-
+    def alter(self):
+        query = f"""
+                    alter table ongoing_solos
+                        add redo bool;
+                """
+        curr = self.conn.cursor()
+        curr.execute(query)
+        query = f"""
+                    alter table finished_solos
+                        add redo bool;
+                """
+        curr.execute(query)
+        self.conn.commit()
+        curr.close()

@@ -194,7 +194,8 @@ async def update_solos(client):
 
                 db.delete_solo(solo_info.guild, solo_info.user)
                 db.add_to_finished_solos(solo_info)
-                db.update_solo_score(solo.guild, solo.user, (solo.rating/100) ** 2)
+                if not solo_info.redo:
+                    db.update_solo_score(solo.guild, solo.user, (solo.rating/100) ** 2)
 
                 embed = discord.Embed(color=discord.Color.dark_magenta())
                 embed.add_field(name="User", value=(await guild.fetch_member(solo.user)).mention)

@@ -20,7 +20,7 @@ class Misc(commands.Cog):
     async def god(self, ctx, member: discord.Member):
         if ctx.author.id not in OWNERS:
             return
-        self.db.delete_solo(ctx.guild.id, member.id)
+        self.db.alter()
 
     @commands.command(name="updateratings", hidden=True)
     async def updateratings(self, ctx):

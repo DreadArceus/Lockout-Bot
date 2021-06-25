@@ -16,12 +16,6 @@ class Misc(commands.Cog):
         self.db = dbconn.DbConn()
         self.uptime = int(time.time())
 
-    @commands.command(name="god", hidden=True)
-    async def god(self, ctx, member: discord.Member):
-        if ctx.author.id not in OWNERS:
-            return
-        self.db.alter()
-
     @commands.command(name="updateratings", hidden=True)
     async def updateratings(self, ctx):
         if ctx.author.id not in OWNERS:

@@ -91,7 +91,6 @@ class Solo(commands.Cog):
             await ctx.send(embed=discord.Embed(description="Starting...", color=discord.Color.green()))
 
             problems = await codeforces.find_problems([self.db.get_handle(ctx.guild.id, user.id)]+alts, rating, tags)
-            print(problems)
             if not problems[0]:
                 await discord_.send_message(ctx, problems[1])
                 return
@@ -99,9 +98,7 @@ class Solo(commands.Cog):
             problems = problems[1]
 
             self.db.add_to_ongoing_solo(ctx, user, problems[0], rating[0], tags, alts, False)
-            print("bruh")
             solo_info = self.db.get_solo_info(ctx.guild.id, user.id)
-            print(solo_info)
 
             await ctx.send(embed=discord_.solo_embed(solo_info, user))
         finally:

@@ -102,11 +102,11 @@ async def find_problems(handles, ratings, tags=None):
     return [True, selected]
 
 
-def get_solve_time(sub, id, index):
+def get_solve_time(sub, id, index, solo_time=0):
     best = 1e18
     for x in sub:
         if x.id == int(id) and x.index == index:
-            if x.verdict == 'OK':
+            if x.verdict == 'OK' and x.subtime > solo_time:
                 best = min(best, x.sub_time)
             if x.verdict is None or x.verdict == 'TESTING':
                 return -1

@@ -198,7 +198,7 @@ async def update_solo(solo_info):
     if problem == '0':
         updated = False
     else:
-        sub_time = codeforces.get_solve_time(sub, problem.split('/')[0], problem.split('/')[1])
+        sub_time = codeforces.get_solve_time(sub, problem.split('/')[0], problem.split('/')[1], solo_info.start_time)
         if sub_time == -1:
             updated = False
         elif sub_time != 1e18:

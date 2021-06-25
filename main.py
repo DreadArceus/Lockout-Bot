@@ -29,7 +29,6 @@ async def on_ready():
     logging_channel = await client.fetch_channel(os.environ.get("LOGGING_CHANNEL"))
     await logging_channel.send(f"Bot ready")
     dbconn.DbConn().erase_queue()
-    dbconn.DbConn().alter()
 
     scheduler = AsyncIOScheduler()
     scheduler.add_job(update, 'interval', seconds=AUTO_UPDATE_TIME)

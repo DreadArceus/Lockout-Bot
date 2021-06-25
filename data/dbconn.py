@@ -765,7 +765,7 @@ class DbConn:
             return True
         return False
 
-    def add_to_ongoing_solo(self, ctx, user, problem, rating, tags, alts, redo: int = 0):
+    def add_to_ongoing_solo(self, ctx, user, problem, rating, tags, alts, redo: int):
         query = f"""
                     INSERT INTO ongoing_solos
                     VALUES

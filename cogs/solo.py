@@ -98,7 +98,8 @@ class Solo(commands.Cog):
 
             problems = problems[1]
 
-            self.db.add_to_ongoing_solo(ctx, user, problems[0], rating[0], tags, alts)
+            self.db.add_to_ongoing_solo(ctx, user, problems[0], rating[0], tags, alts, False)
+            print("bruh")
             solo_info = self.db.get_solo_info(ctx.guild.id, user.id)
             print(solo_info)
 
@@ -138,11 +139,8 @@ class Solo(commands.Cog):
             await ctx.send(embed=discord.Embed(description="Starting...", color=discord.Color.green()))
 
             redo = await codeforces.check_solved([self.db.get_handle(ctx.guild.id, user.id)], problem.id, problem.index)
-            print(redo)
             self.db.add_to_ongoing_solo(ctx, user, problem, problem.rating, problem.tags.split(','), [], redo)
-            print("bruh")
             solo_info = self.db.get_solo_info(ctx.guild.id, user.id)
-            print(solo_info)
 
             await ctx.send(embed=discord_.solo_embed(solo_info, user))
         finally:

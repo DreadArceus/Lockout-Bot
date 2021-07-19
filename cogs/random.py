@@ -64,7 +64,7 @@ class Random(commands.Cog):
 
         embed.add_field(name="Problem", value="\n".join([f"[{p.name}](https://codeforces.com/contest/{p.id}/"
                                                          f"problem/{p.index})" for p in problems]), inline=True)
-        embed.add_field(name="Rating", value="\n".join([p.rating for p in problems]), inline=True)
+        embed.add_field(name="Rating", value="\n".join([f"{p.rating}" for p in problems]), inline=True)
 
         await ctx.send(embed=embed)
 

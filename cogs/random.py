@@ -69,5 +69,6 @@ class Random(commands.Cog):
 
         await ctx.send(embed=embed)
 
+
 def setup(client):
     client.add_cog(Random(client))

@@ -49,16 +49,18 @@ class Random(commands.Cog):
             return
         rating = rating[1]
 
-        handles = [self.db.get_handle(ctx.guild.id, x.id) for x in users]
-        problems = []
+        await ctx.send("Have patience...")
+
+        rs = []
         r = rating[0]
         while r <= rating[1]:
-            tmp = await codeforces.find_problems(handles, [r]*problem_cnt)
-            if not tmp[0]:
-                await discord_.send_message(ctx, tmp[1])
-                return
-            problems += tmp[1]
+            rs += [r]*problem_cnt
             r += 100
+        problems = await codeforces.find_problems([self.db.get_handle(ctx.guild.id, x.id) for x in users], rs)
+        if not problems[0]:
+            await discord_.send_message(ctx, problems[1])
+            return
+        problems = problems[1]
 
         embed = discord.Embed(description="YEPPERS", color=discord.Color.magenta())
         embed.set_author(name="Random Mashup")

@@ -62,11 +62,12 @@ class Random(commands.Cog):
             return
         problems = problems[1]
 
-        embed = discord.Embed(description="YEPPERS", color=discord.Color.magenta())
+        embed = discord.Embed(description=f"{ctx.author.mention} the dice has been rolled", color=discord.Color.magenta())
         embed.set_author(name="Random Mashup")
 
         embed.add_field(name="Problem", value="\n".join([f"[{p.name}](https://codeforces.com/contest/{p.id}/"
                                                          f"problem/{p.index})" for p in problems]), inline=True)
+        embed.add_field(name="Id", value="\n".join([f"{p.id}/{p.index}" for p in problems]), inline=True)
         embed.add_field(name="Rating", value="\n".join([f"{p.rating}" for p in problems]), inline=True)
 
         await ctx.send(embed=embed)

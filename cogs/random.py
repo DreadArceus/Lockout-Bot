@@ -1,9 +1,6 @@
 import discord
-import os
-import traceback
 
 from discord.ext import commands
-from discord.ext.commands import cooldown, BucketType
 
 from data import dbconn
 from utils import cf_api, discord_, codeforces
@@ -56,15 +53,20 @@ class Random(commands.Cog):
         problems = []
         r = rating[0]
         while r <= rating[1]:
-            problems.append(await codeforces.find_problems(handles, [r]*problem_cnt))
+            tmp = await codeforces.find_problems(handles, [r]*problem_cnt)
+            if not tmp[0]:
+                await discord_.send_message(ctx, tmp[1])
+                return
+            problems += tmp[1]
             r += 100
-        if not problems[0]:
-            await discord_.send_message(ctx, problems[1])
-            return
-        problems = problems[1]
 
-        print(problems)
+        embed = discord.Embed(description="YEPPERS", color=discord.Color.magenta())
 
+        embed.add_field(name="Problem", value="\n".join([f"[{p.name}](https://codeforces.com/contest/{p.id}/"
+                                                         f"problem/{p.index})" for p in problems]), inline=True)
+        embed.add_field(name="Rating", value="\n".join([p.rating for p in problems]), inline=True)
+
+        await ctx.send(embed=embed)
 
 def setup(client):
     client.add_cog(Random(client))

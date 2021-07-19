@@ -61,6 +61,7 @@ class Random(commands.Cog):
             r += 100
 
         embed = discord.Embed(description="YEPPERS", color=discord.Color.magenta())
+        embed.set_author(name="Random Mashup")
 
         embed.add_field(name="Problem", value="\n".join([f"[{p.name}](https://codeforces.com/contest/{p.id}/"
                                                          f"problem/{p.index})" for p in problems]), inline=True)

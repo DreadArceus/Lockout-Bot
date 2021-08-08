@@ -17,14 +17,14 @@ load_dotenv('.env')
 
 intents = discord.Intents.default()
 intents.members = False
-client = Bot(case_insensitive=True, description="Lockout Bot", command_prefix=when_mentioned_or(";"), intents=intents)
+client = Bot(case_insensitive=True, description="Lockout Bot", command_prefix=when_mentioned_or(";;"), intents=intents)
 
 logging_channel = None
 
 
 @client.event
 async def on_ready():
-    await client.change_presence(activity=discord.Game(name=";help"))
+    await client.change_presence(activity=discord.Game(name=";;help"))
     global logging_channel
     logging_channel = await client.fetch_channel(os.environ.get("LOGGING_CHANNEL"))
     await logging_channel.send(f"Bot ready")

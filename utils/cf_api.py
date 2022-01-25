@@ -71,7 +71,6 @@ class CodeforcesAPI:
                     x['verdict'] = None
                 data.append(Problem(y['contestId'], y['index'], y['name'], y['type'], y['rating'],
                                     x['creationTimeSeconds'], x['verdict']))
-            print(data)
             return [True, data]
         except Exception as e:
             return [False, str(e)]

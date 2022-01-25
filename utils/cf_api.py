@@ -22,6 +22,7 @@ class CodeforcesAPI:
                             return response
                 return response
         except Exception as e:
+            print(e)
             return None
 
     async def check_handle(self, handle):

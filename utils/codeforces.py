@@ -111,6 +111,7 @@ def get_solve_time(sub, id, index, solo_time=0):
                 best = min(best, x.sub_time)
             if x.verdict is None or x.verdict == 'TESTING':
                 return -1
+    print(best)
     return best
 
 

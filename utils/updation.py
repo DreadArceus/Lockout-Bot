@@ -195,6 +195,7 @@ async def update_solo(solo_info):
     end = 0
     problem = solo_info.problem
 
+    print(handle)
     if problem == '0':
         updated = False
     else:

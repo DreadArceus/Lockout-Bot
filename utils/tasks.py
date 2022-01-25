@@ -179,6 +179,7 @@ async def update_solos(client):
         try:
             guild = client.get_guild(solo.guild)
             resp = await updation.update_solo(solo)
+            print(resp)
             if not resp[0]:
                 logging_channel = await client.fetch_channel(os.environ.get("LOGGING_CHANNEL"))
                 await logging_channel.send(f"Error while updating solo: {resp[1]}")

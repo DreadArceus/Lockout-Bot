@@ -217,7 +217,7 @@ class Solo(commands.Cog):
             member = ctx.author
 
         arch = self.db.get_archived_solos(ctx.guild.id, member.id)
-        await ctx.send(embed=discord_.solo_archive_embed(arch, ctx.author))
+        await ctx.send(embed=discord_.solo_archive_embed(arch, member))
 
     @solo.command(brief="Check the server leaderboard")
     async def scoreboard(self, ctx):

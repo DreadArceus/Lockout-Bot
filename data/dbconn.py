@@ -157,6 +157,20 @@ class DbConn:
                     )
                             """)
         cmds.append("""
+                        CREATE TABLE IF NOT EXISTS archived_solos(
+                            guild BIGINT,
+                            channel BIGINT,
+                            user_ BIGINT,
+                            time INT,
+                            problem TEXT,
+                            rating INT,
+                            tags TEXT,
+                            start_time INT,
+                            duration INT,
+                            redo BOOL
+                    )
+                            """)
+        cmds.append("""
                         CREATE TABLE IF NOT EXISTS solo_scoreboard(
                             guild BIGINT,
                             user_ BIGINT,
@@ -447,8 +461,8 @@ class DbConn:
                 """
         curr = self.conn.cursor()
         curr.execute(query, (challenge_info.guild, challenge_info.p1_id, challenge_info.p2_id, challenge_info.rating,
-                     time, challenge_info.channel, ' '.join([f"{x.id}/{x.index}" for x in problems]), "00000",
-                     challenge_info.duration))
+                             time, challenge_info.channel, ' '.join([f"{x.id}/{x.index}" for x in problems]), "00000",
+                             challenge_info.duration))
         self.conn.commit()
         curr.close()
 
@@ -580,7 +594,7 @@ class DbConn:
                     idx DESC
                 """
         curr = self.conn.cursor()
-        curr.execute(query, (guild, ))
+        curr.execute(query, (guild,))
         resp = curr.fetchall()
         curr.close()
         done = []
@@ -620,7 +634,8 @@ class DbConn:
         curr = self.conn.cursor()
         curr.execute(query, (ctx.guild.id, ' '.join([f"{x.id}" for x in users]), ' '.join(map(str, rating)),
                              ' '.join(map(str, points)), int(time.time()), ctx.channel.id,
-                             ' '.join([f"{x.id}/{x.index}" for x in problems]), ' '.join('0' for i in range(len(users))),
+                             ' '.join([f"{x.id}/{x.index}" for x in problems]),
+                             ' '.join('0' for i in range(len(users))),
                              duration, repeat, ' '.join(['0'] * len(users)), tournament))
         self.add_to_alt_table(ctx, users, alts)
         self.conn.commit()
@@ -664,8 +679,10 @@ class DbConn:
         curr.execute(query, (guild, f"%{users}%"))
         data = curr.fetchone()
         curr.close()
-        Round = namedtuple('Round', 'guild users rating points time channel problems status duration repeat times, tournament')
-        return Round(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11])
+        Round = namedtuple('Round',
+                           'guild users rating points time channel problems status duration repeat times, tournament')
+        return Round(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10],
+                     data[11])
 
     def get_all_rounds(self, guild=None):
         query = f"""
@@ -677,8 +694,11 @@ class DbConn:
         curr.execute(query)
         res = curr.fetchall()
         curr.close()
-        Round = namedtuple('Round', 'guild users rating points time channel problems status duration repeat times, tournament')
-        return [Round(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11]) for data in res]
+        Round = namedtuple('Round',
+                           'guild users rating points time channel problems status duration repeat times, tournament')
+        return [
+            Round(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10],
+                  data[11]) for data in res]
 
     def update_round_status(self, guild, user, status, problems, timestamp):
         query = f"""
@@ -724,8 +744,9 @@ class DbConn:
                 """
         curr = self.conn.cursor()
         curr.execute(query, (round_info.guild, round_info.users, round_info.rating, round_info.points, round_info.time,
-                                round_info.channel, round_info.problems, round_info.status, round_info.duration, round_info.repeat,
-                                round_info.times, int(time.time())))
+                             round_info.channel, round_info.problems, round_info.status, round_info.duration,
+                             round_info.repeat,
+                             round_info.times, int(time.time())))
         self.conn.commit()
         curr.close()
 
@@ -742,10 +763,11 @@ class DbConn:
                         ORDER BY end_time DESC
                     """
         curr = self.conn.cursor()
-        curr.execute(query, (guild, ) if user is None else (guild, f"%{user}%"))
+        curr.execute(query, (guild,) if user is None else (guild, f"%{user}%"))
         res = curr.fetchall()
         curr.close()
-        Round = namedtuple('Round', 'guild users rating points time channel problems status duration repeat times end_time')
+        Round = namedtuple('Round',
+                           'guild users rating points time channel problems status duration repeat times end_time')
         data = []
         for x in res:
             data.append(Round(x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8], x[9], x[10], x[11]))
@@ -894,7 +916,7 @@ class DbConn:
         curr = self.conn.cursor()
         if user is not None:
             query += " AND user_ = %s"
-        curr.execute(query, (guild, user) if user is not None else (guild, ))
+        curr.execute(query, (guild, user) if user is not None else (guild,))
         res = curr.fetchall()
         curr.close()
         Score = namedtuple('Score', 'guild user score loss_count')
@@ -930,6 +952,32 @@ class DbConn:
         self.conn.commit()
         curr.close()
 
+    def add_to_archived_solos(self, solo_info):
+        query = f"""
+                    INSERT INTO archived_solos
+                    VALUES
+                    (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """
+        curr = self.conn.cursor()
+        curr.execute(query, (solo_info.guild, solo_info.channel, solo_info.user, solo_info.time, solo_info.problem,
+                             solo_info.rating, solo_info.tags, solo_info.start_time,
+                             solo_info.duration, solo_info.redo))
+        self.conn.commit()
+        curr.close()
+
+    def get_archived_solos(self, guild, user):
+        query = f"""
+                    SELECT * FROM archived_solos
+                    WHERE guild = %s AND user_ = %s
+                """
+        curr = self.conn.cursor()
+        curr.execute(query, (guild, user))
+        res = curr.fetchall()
+        curr.close()
+        Solo = namedtuple('Solo', 'guild channel user time problem rating tags start_time duration redo')
+        return [Solo(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9])
+                for data in res]
+
     def get_recent_solos(self, guild, user=None):
         query = f"""
                     SELECT * FROM finished_solos
@@ -943,7 +991,7 @@ class DbConn:
                         ORDER BY start_time DESC
                     """
         curr = self.conn.cursor()
-        curr.execute(query, (guild, ) if user is None else (guild, user))
+        curr.execute(query, (guild,) if user is None else (guild, user))
         res = curr.fetchall()
         curr.close()
         Solo = namedtuple('Solo', 'guild channel user time problem rating tags start_time duration redo')
@@ -1046,7 +1094,7 @@ class DbConn:
                     WHERE guild = %s
                 """
         curr = self.conn.cursor()
-        curr.execute(query, (guild, ))
+        curr.execute(query, (guild,))
         data = curr.fetchone()
         curr.close()
         if not data:
@@ -1107,7 +1155,7 @@ class DbConn:
                     ORDER BY rating DESC
                 """
         curr = self.conn.cursor()
-        curr.execute(query, (guild, ))
+        curr.execute(query, (guild,))
         data = curr.fetchall()
         curr.close()
         Registrant = namedtuple('Registrant', 'guild, discord_id, handle, rating, challonge_id')
@@ -1171,14 +1219,14 @@ class DbConn:
                     WHERE guild = %s
                 """
         curr = self.conn.cursor()
-        curr.execute(query, (guild, ))
+        curr.execute(query, (guild,))
         self.conn.commit()
 
         query = f"""
                     DELETE FROM registrants
                     WHERE guild = %s
                 """
-        curr.execute(query, (guild, ))
+        curr.execute(query, (guild,))
         self.conn.commit()
         curr.close()
 
@@ -1201,7 +1249,7 @@ class DbConn:
                     ORDER BY time DESC
                 """
         curr = self.conn.cursor()
-        curr.execute(query, (guild, ))
+        curr.execute(query, (guild,))
         data = curr.fetchall()
         curr.close()
         Tournament = namedtuple("Tournament", "guild name type id url winner time")

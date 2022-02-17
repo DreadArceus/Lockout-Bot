@@ -10,7 +10,6 @@ from utils.updation import match_score, round_score
 from utils import updation, cf_api
 from data import dbconn
 
-
 db = dbconn.DbConn()
 cf = cf_api.CodeforcesAPI()
 
@@ -38,6 +37,7 @@ async def get_time_response(client, ctx, message, time, author, range_):
         if int(i) < range_[0] or int(i) > range_[1]:
             return False
         return True
+
     try:
         msg = await client.wait_for('message', timeout=time, check=check)
         await original.delete()
@@ -203,8 +203,9 @@ def ongoing_matches_embed(data):
             handle1, handle2 = db.get_handle(match.guild, match.p1_id), db.get_handle(match.guild, match.p2_id)
             a, b = updation.match_score(match.status)
             profile_url = "https://codeforces.com/profile/"
-            content.append(f"{len(content)+1}. [{handle1}]({profile_url+handle1})(**{a}** points) vs (**{b}** points) [{handle2}]"
-                           f"({profile_url+handle2}) | {match.rating} rated | Time left: {timeez(match.time+60*match.duration-int(time.time()))}")
+            content.append(
+                f"{len(content) + 1}. [{handle1}]({profile_url + handle1})(**{a}** points) vs (**{b}** points) [{handle2}]"
+                f"({profile_url + handle2}) | {match.rating} rated | Time left: {timeez(match.time + 60 * match.duration - int(time.time()))}")
         except Exception:
             pass
     return content
@@ -217,26 +218,28 @@ def recent_matches_embed(data):
             handle1, handle2 = db.get_handle(match.guild, match.p1_id), db.get_handle(match.guild, match.p2_id)
             a, b = updation.match_score(match.status)
             profile_url = "https://codeforces.com/profile/"
-            content.append(f"{len(content)+1}. [{handle1}]({profile_url+handle1})(**{a}** points) vs (**{b}** points) [{handle2}]"
-                           f"({profile_url+handle2}) {f'was won by **{handle1 if a>b else handle2}**' if a!=b else 'ended in a **draw**!'} | {match.rating} rated | {timeez(int(time.time())-match.time)} ago")
+            content.append(
+                f"{len(content) + 1}. [{handle1}]({profile_url + handle1})(**{a}** points) vs (**{b}** points) [{handle2}]"
+                f"({profile_url + handle2}) {f'was won by **{handle1 if a > b else handle2}**' if a != b else 'ended in a **draw**!'} | {match.rating} rated | {timeez(int(time.time()) - match.time)} ago")
         except Exception:
             pass
     return content
 
 
 def round_problems_embed(round_info):
-    ranklist = round_score(list(map(int, round_info.users.split())), list(map(int, round_info.status.split())), list(map(int, round_info.times.split())))
+    ranklist = round_score(list(map(int, round_info.users.split())), list(map(int, round_info.status.split())),
+                           list(map(int, round_info.times.split())))
 
     problems = round_info.problems.split()
     names = [f"[{db.get_problems(problems[i])[0].name}](https://codeforces.com/contest/{problems[i].split('/')[0]}"
              f"/problem/{problems[i].split('/')[1]})" if problems[i] != '0' else "This problem has been solved" if
-             round_info.repeat == 0 else "No problems of this rating left" for i in range(len(problems))]
+    round_info.repeat == 0 else "No problems of this rating left" for i in range(len(problems))]
 
     desc = ""
     for user in ranklist:
         emojis = [":first_place:", ":second_place:", ":third_place:"]
         handle = db.get_handle(round_info.guild, user.id)
-        desc += f"{emojis[user.rank-1] if user.rank <= len(emojis) else user.rank} [{handle}](https://codeforces.com/profile/{handle}) **{user.points}** points\n"
+        desc += f"{emojis[user.rank - 1] if user.rank <= len(emojis) else user.rank} [{handle}](https://codeforces.com/profile/{handle}) **{user.points}** points\n"
 
     embed = discord.Embed(description=desc, color=discord.Color.magenta())
     embed.set_author(name=f"Problems")
@@ -250,7 +253,6 @@ def round_problems_embed(round_info):
 
 
 def solo_embed(solo_info, user):
-    problem = solo_info.problem
     name = f"[{db.get_problems(problem)[0].name}](https://codeforces.com/contest/{problem.split('/')[0]}/problem/{problem.split('/')[1]})"
 
     desc = f"{user.mention} your time has come <:god:856773838627799042>"
@@ -267,6 +269,19 @@ def solo_embed(solo_info, user):
     return embed
 
 
+def solo_archive_embed(arch, user):
+    embed = discord.Embed(description=f"{user.mention} this is your past", color=discord.Color.magenta())
+    embed.set_author(name="Solo Archive")
+
+    name = [f"[{db.get_problems(solo.problem)[0].name}](https://codeforces.com/contest/{solo.problem.split('/')[0]}/problem/{solo.problem.split('/')[1]})" for solo in arch]
+    embed.add_field(name="Problem", value="\n".join([f"[{p.name}](https://codeforces.com/contest/{p.id}/"
+                                                     f"problem/{p.index})" for p in problems]), inline=True)
+    # embed.add_field(name="Time", value="\n".join([f"{p.id}{p.index}" for p in problems]), inline=True)
+    # embed.add_field(name="Rating", value="\n".join([f"{p.rating}" for p in problems]), inline=True)
+
+    return embed
+
+
 def recent_rounds_embed(data):
     content = []
 
@@ -274,11 +289,12 @@ def recent_rounds_embed(data):
         try:
             ranklist = updation.round_score(list(map(int, round.users.split())), list(map(int, round.status.split())),
                                             list(map(int, round.times.split())))
-            msg = ' vs '.join([f"[{db.get_handle(round.guild, user.id)}](https://codeforces.com/profile/{db.get_handle(round.guild, user.id)}) `Rank {user.rank}` `{user.points} Points`"
-                               for user in ranklist])
+            msg = ' vs '.join([
+                                  f"[{db.get_handle(round.guild, user.id)}](https://codeforces.com/profile/{db.get_handle(round.guild, user.id)}) `Rank {user.rank}` `{user.points} Points`"
+                                  for user in ranklist])
             msg += f"\n**Problem ratings:** {round.rating}"
             msg += f"\n**Score distribution** {round.points}"
-            msg += f"\n**Duration:** {timeez(min(60*round.duration, round.end_time-round.time))}\n\n"
+            msg += f"\n**Duration:** {timeez(min(60 * round.duration, round.end_time - round.time))}\n\n"
             content.append(msg)
         except Exception:
             pass
@@ -293,11 +309,12 @@ def ongoing_rounds_embed(data):
         try:
             ranklist = updation.round_score(list(map(int, round.users.split())), list(map(int, round.status.split())),
                                             list(map(int, round.times.split())))
-            msg = ' vs '.join([f"[{db.get_handle(round.guild, user.id)}](https://codeforces.com/profile/{db.get_handle(round.guild, user.id)}) `Rank {user.rank}` `{user.points} Points`"
-                               for user in ranklist])
+            msg = ' vs '.join([
+                                  f"[{db.get_handle(round.guild, user.id)}](https://codeforces.com/profile/{db.get_handle(round.guild, user.id)}) `Rank {user.rank}` `{user.points} Points`"
+                                  for user in ranklist])
             msg += f"\n**Problem ratings:** {round.rating}"
             msg += f"\n**Score distribution** {round.points}"
-            msg += f"\n**Time left:** {timeez(60*round.duration + round.time - int(time.time()))}\n\n"
+            msg += f"\n**Time left:** {timeez(60 * round.duration + round.time - int(time.time()))}\n\n"
             content.append(msg)
         except Exception:
             pass
@@ -305,7 +322,7 @@ def ongoing_rounds_embed(data):
     return content
 
 
-async def content_pagination(content, client, PER_PAGE, heading, ctx, color, extra_text: str=""):
+async def content_pagination(content, client, PER_PAGE, heading, ctx, color, extra_text: str = ""):
     currPage = 0
     totPage = math.ceil(len(content) / PER_PAGE)
     text = '\n'.join(content[currPage * PER_PAGE: min(len(content), (currPage + 1) * PER_PAGE)])
@@ -347,6 +364,3 @@ async def content_pagination(content, client, PER_PAGE, heading, ctx, color, ext
 
         except asyncio.TimeoutError:
             break
-
-
-

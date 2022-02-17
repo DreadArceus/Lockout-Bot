@@ -195,11 +195,28 @@ class Solo(commands.Cog):
     @solo.command(brief="Give up like the loser you are")
     async def loser(self, ctx):
         if not self.db.in_a_solo(ctx.guild.id, ctx.author.id):
-            await discord_.send_message(ctx, f"{ctx.author.mention} cant lose a solo you never started")
+            await discord_.send_message(ctx, f"{ctx.author.mention} can't lose a solo you never started")
             return
         self.db.delete_solo(ctx.guild.id, ctx.author.id)
         self.db.update_solo_score(ctx.guild.id, ctx.author.id, 0, True)
         await discord_.send_message(ctx, f"{ctx.author.mention} is a loser")
+
+    @solo.command(brief="Leave it for future you")
+    async def archive(self, ctx):
+        if not self.db.in_a_solo(ctx.guild.id, ctx.author.id):
+            await discord_.send_message(ctx, f"{ctx.author.mention} can't archive a solo you never started")
+            return
+        self.db.delete_solo(ctx.guild.id, ctx.author.id)
+        self.db.add_to_archived_solos(self.db.get_solo_info(ctx.guild.id, ctx.author.id))
+        await discord_.send_message(ctx, f"{ctx.author.mention} is a loser")
+
+    @solo.command( brief="View problem(s) in the archive")
+    async def show_archive(self, ctx, member: discord.Member = None):
+        if not member:
+            member = ctx.author
+
+        arch = self.db.get_archived_solos(ctx.guild.id, member.id)
+        await ctx.send(embed=discord_.solo_archive_embed(arch, ctx.author))
 
     @solo.command(brief="Check the server leaderboard")
     async def scoreboard(self, ctx):

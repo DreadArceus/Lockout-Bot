@@ -278,7 +278,7 @@ def solo_archive_embed(arch, user):
     name = [f"[{problem.name}](https://codeforces.com/contest/{problem.id}/problem/{problem.index})" for problem in problems]
     embed.add_field(name="Problem", value="\n".join([f"[{p.name}](https://codeforces.com/contest/{p.id}/"
                                                      f"problem/{p.index})" for p in problems]), inline=True)
-    # embed.add_field(name="Time", value="\n".join([f"{p.id}{p.index}" for p in problems]), inline=True)
+    embed.add_field(name="Time", value="\n".join([p.duration for p in problems]), inline=True)
     # embed.add_field(name="Rating", value="\n".join([f"{p.rating}" for p in problems]), inline=True)
 
     return embed

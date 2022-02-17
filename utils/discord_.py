@@ -253,6 +253,7 @@ def round_problems_embed(round_info):
 
 
 def solo_embed(solo_info, user):
+    problem = solo_info.problem
     name = f"[{db.get_problems(problem)[0].name}](https://codeforces.com/contest/{problem.split('/')[0]}/problem/{problem.split('/')[1]})"
 
     desc = f"{user.mention} your time has come <:god:856773838627799042>"

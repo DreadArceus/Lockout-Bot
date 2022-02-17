@@ -271,11 +271,11 @@ def solo_embed(solo_info, user):
 
 
 def solo_archive_embed(arch, user):
-    problems = [solo.problem for solo in arch]
+    problems = [db.get_problems(solo.problem)[0] for solo in arch]
     embed = discord.Embed(description=f"{user.mention} this is your past", color=discord.Color.magenta())
     embed.set_author(name="Solo Archive")
 
-    name = [f"[{db.get_problems(problem)[0].name}](https://codeforces.com/contest/{problem.split('/')[0]}/problem/{problem.split('/')[1]})" for problem in problems]
+    name = [f"[{problem.name}](https://codeforces.com/contest/{problem.id}/problem/{problem.index})" for problem in problems]
     embed.add_field(name="Problem", value="\n".join([f"[{p.name}](https://codeforces.com/contest/{p.id}/"
                                                      f"problem/{p.index})" for p in problems]), inline=True)
     # embed.add_field(name="Time", value="\n".join([f"{p.id}{p.index}" for p in problems]), inline=True)

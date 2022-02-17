@@ -217,6 +217,8 @@ class Solo(commands.Cog):
             member = ctx.author
 
         arch = self.db.get_archived_solos(ctx.guild.id, member.id)
+        if not arch:
+            await discord_.send_message(ctx, f"{ctx.author.mention} You have nothing archived.")
         await ctx.send(embed=discord_.solo_archive_embed(arch, member))
 
     @solo.command(brief="Check the server leaderboard")

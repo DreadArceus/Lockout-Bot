@@ -206,8 +206,9 @@ class Solo(commands.Cog):
         if not self.db.in_a_solo(ctx.guild.id, ctx.author.id):
             await discord_.send_message(ctx, f"{ctx.author.mention} can't archive a solo you never started")
             return
-        self.db.delete_solo(ctx.guild.id, ctx.author.id)
         self.db.add_to_archived_solos(self.db.get_solo_info(ctx.guild.id, ctx.author.id))
+        self.db.delete_solo(ctx.guild.id, ctx.author.id)
+
         await discord_.send_message(ctx, f"{ctx.author.mention} is a loser")
 
     @solo.command( brief="View problem(s) in the archive")

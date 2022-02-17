@@ -209,7 +209,7 @@ class Solo(commands.Cog):
         self.db.add_to_archived_solos(self.db.get_solo_info(ctx.guild.id, ctx.author.id))
         self.db.delete_solo(ctx.guild.id, ctx.author.id)
 
-        await discord_.send_message(ctx, f"{ctx.author.mention} is a loser")
+        await discord_.send_message(ctx, f"{ctx.author.mention} problem archived")
 
     @solo.command( brief="View problem(s) in the archive")
     async def show_archive(self, ctx, member: discord.Member = None):

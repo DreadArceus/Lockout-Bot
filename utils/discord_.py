@@ -4,6 +4,7 @@ import asyncio
 import math
 
 from humanfriendly import format_timespan as timeez
+from datetime import datetime
 
 from constants import ADMIN_PRIVILEGE_ROLES
 from utils.updation import match_score, round_score
@@ -276,9 +277,9 @@ def solo_archive_embed(arch, user):
     embed.set_author(name="Solo Archive")
 
     name = [f"[{problem.name}](https://codeforces.com/contest/{problem.id}/problem/{problem.index})" for problem in problems]
-    embed.add_field(name="Problem", value="\n".join([f"[{p.name}](https://codeforces.com/contest/{p.id}/"
+    embed.add_field(name="Problems", value="\n".join([f"[{p.name}](https://codeforces.com/contest/{p.id}/"
                                                      f"problem/{p.index})" for p in problems]), inline=True)
-    embed.add_field(name="Time", value="\n".join([f"{timeez(solo.duration)}" for solo in arch]), inline=True)
+    embed.add_field(name="Taken on", value="\n".join([f"{datetime.fromtimestamp(solo.start_time)}" for solo in arch]), inline=True)
     embed.add_field(name="Rating", value="\n".join([f"{p.rating}" for p in problems]), inline=True)
 
     return embed

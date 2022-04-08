@@ -965,6 +965,25 @@ class DbConn:
         self.conn.commit()
         curr.close()
 
+    def retake_archived_solo(self, solo_info):
+        query = f"""
+                    INSERT INTO ongoing_solos
+                    VALUES
+                    (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """
+        curr = self.conn.cursor()
+        curr.execute(query, (solo_info.guild, solo_info.channel, solo_info.user, int(time.time()), solo_info.problem,
+                             solo_info.rating, solo_info.tags, int(time.time()), -1, solo_info.redo))
+
+        query = f"""
+                    DELETE FROM archived_solos
+                    WHERE
+                    guild = %s AND user_ = %s AND problem = %s
+                """
+        curr.execute(query, (solo_info.guild, solo_info.user, solo_info.problem))
+        self.conn.commit()
+        curr.close()
+
     def get_archived_solos(self, guild, user):
         query = f"""
                     SELECT * FROM archived_solos

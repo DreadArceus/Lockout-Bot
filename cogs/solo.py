@@ -11,7 +11,6 @@ from data import dbconn
 from utils import cf_api, discord_, codeforces, updation
 from constants import AUTO_UPDATE_TIME
 
-
 LOWER_RATING = 800
 UPPER_RATING = 3600
 MAX_TAGS = 5
@@ -90,7 +89,7 @@ class Solo(commands.Cog):
 
             await ctx.send(embed=discord.Embed(description="Starting...", color=discord.Color.green()))
 
-            problems = await codeforces.find_problems([self.db.get_handle(ctx.guild.id, user.id)]+alts, rating, tags)
+            problems = await codeforces.find_problems([self.db.get_handle(ctx.guild.id, user.id)] + alts, rating, tags)
             if not problems[0]:
                 await discord_.send_message(ctx, problems[1])
                 return
@@ -211,7 +210,7 @@ class Solo(commands.Cog):
 
         await discord_.send_message(ctx, f"{ctx.author.mention} problem archived")
 
-    @solo.command( brief="View problem(s) in the archive")
+    @solo.command(brief="View problem(s) in the archive")
     async def show_archive(self, ctx, member: discord.Member = None):
         if not member:
             member = ctx.author
@@ -220,6 +219,26 @@ class Solo(commands.Cog):
         if not arch:
             await discord_.send_message(ctx, f"{ctx.author.mention} You have nothing archived.")
         await ctx.send(embed=discord_.solo_archive_embed(arch, member))
+
+    @solo.command(brief="Pick up where past you left off")
+    async def unarchive(self, ctx):
+        if self.db.in_a_solo(ctx.guild.id, ctx.author.id):
+            await discord_.send_message(ctx, f"{ctx.author.mention} clear your present solo before the past")
+            return
+
+        arch = self.db.get_archived_solos(ctx.guild.id, ctx.author.id)
+        if not arch:
+            await discord_.send_message(ctx, f"{ctx.author.mention} You have nothing archived.")
+        await ctx.send(embed=discord_.solo_archive_embed(arch, ctx.author))
+
+        idx = await discord_.get_seq_response(self.client, ctx, f"{ctx.author.mention} enter the index of the "
+                                                                   f"archive you wish to attempt ",
+                                                 60, 1, ctx.author, [0, len(arch) - 1])[0]
+
+        self.db.retake_archived_solo(arch[idx])
+        solo_info = self.db.get_solo_info(ctx.guild.id, ctx.author.id)
+
+        await ctx.send(embed=discord_.solo_embed(solo_info, ctx.author.id))
 
     @solo.command(brief="Check the server leaderboard")
     async def scoreboard(self, ctx):

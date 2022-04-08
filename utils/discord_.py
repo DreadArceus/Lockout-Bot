@@ -276,6 +276,7 @@ def solo_archive_embed(arch, user):
     embed = discord.Embed(description=f"{user.mention} this is your past", color=discord.Color.magenta())
     embed.set_author(name="Solo Archive")
 
+    embed.add_field(name="Id", value="\n".join([f'{i}' for i in range(0, len(arch))]))
     embed.add_field(name="Problem", value="\n".join([f"[{p.name}](https://codeforces.com/contest/{p.id}/"
                                                      f"problem/{p.index})" for p in problems]), inline=True)
     embed.add_field(name="Taken on", value="\n".join([f"{datetime.fromtimestamp(solo.start_time).date()}" for solo in arch]), inline=True)
